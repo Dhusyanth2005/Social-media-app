@@ -1,6 +1,7 @@
 import User from "../models/userModels.js";
 import Post from "../models/postModels.js";
 import bcrypt from "bcryptjs";
+import { v2 as cloudinary } from "cloudinary";
 import generateTokenAndSetCookie from "../utils/helper/generateTokenAndSetCookie.js";
 import mongoose from "mongoose";
 
@@ -130,14 +131,14 @@ const updateUser = async (req, res) => {
 			user.password = hashedPassword;
 		}
 
-		// if (profilePic) {
-		// 	if (user.profilePic) {
-		// 		await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0]);
-		// 	}
+		if (profilePic) {
+			if (user.profilePic) {
+				await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0]);
+			}
 
-		// 	const uploadedResponse = await cloudinary.uploader.upload(profilePic);
-		// 	profilePic = uploadedResponse.secure_url;
-		// }
+			const uploadedResponse = await cloudinary.uploader.upload(profilePic);
+			profilePic = uploadedResponse.secure_url;
+		}
 
 		user.name = name || user.name;
 		user.email = email || user.email;
@@ -178,11 +179,11 @@ const getUserProfile = async (req, res) => {
 		let user;
 
 		// query is userId
-		if (mongoose.Types.ObjectId.isValid(query)) {
-			user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+		if (mongoose.Types.ObjectId.isValid(username)) {
+			user = await User.findOne({ _id: username }).select("-password").select("-updatedAt");
 		} else {
 			// query is username
-			user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+			user = await User.findOne({ username }).select("-password").select("-updatedAt");
 		}
 
 		if (!user) return res.status(404).json({ error: "User not found" });
