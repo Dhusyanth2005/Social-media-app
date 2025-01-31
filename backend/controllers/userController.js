@@ -163,7 +163,7 @@ const updateUser = async (req, res) => {
 		// password should be null in response
 		user.password = null;
 
-		res.status(200).json({message:'profile is updated successfully',user});
+		res.status(200).json(user);
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 		console.log("Error in updateUser: ", err.message);
@@ -173,17 +173,17 @@ const updateUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
 	// We will fetch user profile either with username or userId
 	// query is either username or userId
-	const { username } = req.params;
+	const { query } = req.params;
 
 	try {
 		let user;
 
 		// query is userId
-		if (mongoose.Types.ObjectId.isValid(username)) {
-			user = await User.findOne({ _id: username }).select("-password").select("-updatedAt");
+		if (mongoose.Types.ObjectId.isValid(query)) {
+			user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
 		} else {
 			// query is username
-			user = await User.findOne({ username }).select("-password").select("-updatedAt");
+			user = await User.findOne({ username:query }).select("-password").select("-updatedAt");
 		}
 
 		if (!user) return res.status(404).json({ error: "User not found" });

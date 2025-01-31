@@ -1,12 +1,12 @@
 import User from "../models/userModels.js";
 import Post from "../models/postModels.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const createPost = async (req, res) => {
-    // const post = req.body;
-    try {
-		const { postedBy, text,img } = req.body;
-	
-
+	try {
+		const { postedBy, text } = req.body;
+		let { img } = req.body;
+       
 		if (!postedBy || !text) {
 			return res.status(400).json({ error: "Postedby and text fields are required" });
 		}
@@ -23,15 +23,21 @@ const createPost = async (req, res) => {
 		const maxLength = 500;
 		if (text.length > maxLength) {
 			return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
-        }
+		}
 
-        const newPost = new Post({ postedBy, text, img });
+		if (img) {
+			const uploadedResponse = await cloudinary.uploader.upload(img);
+			img = uploadedResponse.secure_url;
+		}
+
+		const newPost = new Post({ postedBy, text, img });
 		await newPost.save();
 
 		res.status(201).json(newPost);
-     }catch(err){
-            console.log(err);
-        }
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+		console.log(err);
+	}
 };
 
 const getPost = async (req, res) => {
@@ -129,18 +135,26 @@ const replyToPost = async (req, res) => {
 const getFeedPosts = async (req, res) => {
 	try {
 		const userId = req.user._id;
+
+		// Fetch logged-in user and their following list
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ error: "User not found" });
 		}
 
-		const following = user.following;
+		// Extract the list of user IDs the logged-in user follows
+		const followingIds = user.following.map(id => id.toString()); // Convert ObjectId to string
 
-		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
-
-		res.status(200).json(feedPosts);
+		// Find all posts from followed users
+		const posts = await Post.find({ postedBy: { $in: followingIds } })
+			.sort({ createdAt: -1 }) // Order by latest posts
+			.populate("postedBy", "username profilePic") // Get author details
+			.lean(); // Convert Mongoose docs to plain JS objects
+        
+		res.status(200).json(posts);
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 	}
 };
+
 export  {createPost,getPost,getFeedPosts,deletePost,likeUnlikePost,replyToPost};

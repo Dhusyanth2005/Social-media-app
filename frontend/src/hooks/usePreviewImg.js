@@ -8,11 +8,7 @@ const usePreviewImg = () => {
 		const file = e.target.files[0];
 		if (file && file.type.startsWith("image/")) {
 
-            if (file.size > 0.45 * 1024 * 1024) {
-                showToast("File too large", "Please select an image under 2MB", "error");
-                setImgUrl(null);
-                return;
-            }
+           
 			const reader = new FileReader();
 
 			reader.onloadend = () => {

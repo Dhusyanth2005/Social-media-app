@@ -1,18 +1,49 @@
-import { Flex, Button } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { Flex, Spinner } from "@chakra-ui/react";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom"; // Adjust the import path as needed
-
+import { useEffect, useState } from "react";
+import useShowToast from "../hooks/useShowToast";
+import Post from "./Post";
 const HomePage = () => {
+    const [posts,setPosts]= useState([]);
+    const [loading,setLoading]=useState(true);
+    const showToast = useShowToast()
+    useEffect(()=>{
+        const getFeedPosts = async ()=>{
+            setLoading(true);
+            try{
+               const res = await fetch("api/post/feed");
+               const data = await res.json();
+               console.log(data);
+               if(data.error){
+                showToast("Error",data.error,"error");
+               }
+               setPosts(data);
+            }catch(err){
+              showToast("Error",err.message,"error") 
+            }finally{
+                setLoading(false);
+            }
+        }
+        getFeedPosts();
+    },[showToast])
     const user = useRecoilValue(userAtom);
     
     return (
-        <Link to={`/${user?.username}`}> {/* Navigate to /username */}
-            <Flex w={'full'} justifyContent={'center'}>
-                <Button>Visit Profile Page</Button>
+        <>
+
+{!loading && posts.length === 0 && <h1>Follow some users to see the feeds</h1>}
+        {loading && (
+            <Flex justify={'center'}>
+            <Spinner size={'xl'}/>
             </Flex>
-        </Link>
-    );
+        )}
+       {posts.map((post)=>
+          <Post key={post._id} post={post} postedBy={post.postedBy} />
+       )}
+       
+        </>
+    )
 }
 
 export default HomePage;

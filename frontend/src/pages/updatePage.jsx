@@ -10,7 +10,7 @@ import {
     Avatar,
     Center,
   } from '@chakra-ui/react';
-import { useRef, useState } from "react";
+import { useRef, useState ,useEffect} from "react";
 import { useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import usePreviewImg from '../hooks/usePreviewImg';
@@ -18,7 +18,6 @@ import useShowToast from '../hooks/useShowToast.js';
   
 export default function UpdatePage() {
   const [user, setUser] = useRecoilState(userAtom);
-  const { handleImageChange, imgUrl } = usePreviewImg();
 	const [inputs, setInputs] = useState({
 		name: user.name,
 		username: user.username,
@@ -26,10 +25,24 @@ export default function UpdatePage() {
 		bio: user.bio,
 		password: "",
 	});
-  const [updating, setUpdating] = useState(false);
-  const fileRef = useRef(null);
-  const showToast =useShowToast();
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    const savedUser = JSON.parse(localStorage.getItem("user-threads"));
+    console.log("savedUser:", savedUser);
+    
+    if (savedUser && savedUser._id !== user._id) { // Ensure it's a different user to trigger a state update
+      setUser(savedUser); // Ensure Recoil state is synced with localStorage
+    }
+  }, [user, setUser]); // Adding `user` as a dependency to check when it's changed
+  // Re-run this when the component mounts
+  
+	const fileRef = useRef(null);
+	const [updating, setUpdating] = useState(false);
+
+	const showToast = useShowToast();
+
+	const { handleImageChange, imgUrl } = usePreviewImg();
+
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (updating) return;
 		setUpdating(true);
@@ -134,7 +147,7 @@ export default function UpdatePage() {
               type="text"
             />
           </FormControl>
-          <FormControl  isRequired>
+          <FormControl >
             <FormLabel>Password</FormLabel>
             <Input
               placeholder="password"
