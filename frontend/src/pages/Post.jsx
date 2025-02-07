@@ -7,16 +7,16 @@ import useShowToast from "../hooks/useShowToast";
 import {formatDistanceToNow} from 'date-fns';
 
 const Post = ({ post,postedBy}) =>{
-    const [liked, setLiked] = useState(false);
+    
     const showToast = useShowToast();
     const [user,setUser]=useState(null)
 
     const Navigate = useNavigate()
     useEffect(() => {
         const getUser = async () => {
-            if (!postedBy || !postedBy._id) return; // Ensure postedBy exists
+            if (!postedBy ) return; // Ensure postedBy exists
             try {
-                const res = await fetch(`/api/users/profile/${postedBy._id}`);
+                const res = await fetch(`/api/users/profile/${postedBy}`);
                 const data = await res.json();
                 console.log(data)
                 if (data.error) {
@@ -41,7 +41,7 @@ const Post = ({ post,postedBy}) =>{
             <Avatar size="md" name={user.name} src={user.profilePic} 
             onClick={(e)=>{
                 e.preventDefault()
-                Navigate(`/${user.username}`)
+                Navigate(`/profile/${user.username}`)
             }}
             />
             <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
@@ -90,7 +90,7 @@ const Post = ({ post,postedBy}) =>{
 							<Text fontSize={"sm"} fontWeight={"bold"}
                              onClick={(e)=>{
                                 e.preventDefault()
-                                Navigate(`/${user.username}`)
+                                Navigate(`/profile/${user.username}`)
                             }}
                             >
 								{user.username}
@@ -113,18 +113,10 @@ const Post = ({ post,postedBy}) =>{
 						</Box>
 					)}
                         <Flex gap={3} my={1}>
-						<Actions liked={liked} setLiked={setLiked} />
+						<Actions post={post} />
 					</Flex>
 
-					<Flex gap={2} alignItems={"center"}>
-						<Text color={"gray.light"} fontSize='sm'>
-							{post.replies.length} replies
-						</Text>
-						<Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
-						<Text color={"gray.light"} fontSize='sm'>
-							{post.likes.length} likes
-						</Text>
-					</Flex>
+					
                     
 				</Flex>
             </Flex> 

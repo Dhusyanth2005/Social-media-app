@@ -148,7 +148,7 @@ const getFeedPosts = async (req, res) => {
 		// Find all posts from followed users
 		const posts = await Post.find({ postedBy: { $in: followingIds } })
 			.sort({ createdAt: -1 }) // Order by latest posts
-			.populate("postedBy", "username profilePic") // Get author details
+			 // Get author details
 			.lean(); // Convert Mongoose docs to plain JS objects
         
 		res.status(200).json(posts);

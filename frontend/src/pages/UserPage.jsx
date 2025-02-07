@@ -7,13 +7,15 @@ import useShowToast from '../hooks/useShowToast.js';
 import { Spinner } from '@chakra-ui/react';
 const UserPage = ()=>{
   const [user,setUser] = useState(null);
-  const [loading,setLoading] = useState(true)
+  const [loading,setLoading] = useState(true);
   const { username }=useParams();
   const showToast = useShowToast();
   useEffect(()=>{
     
     const getUser = async ()=>{
     try{
+      console.log("Fetching user profile for:", username);
+
       const res = await fetch(`/api/users/profile/${username}`);
       const data = await res.json();
       if(data.error){

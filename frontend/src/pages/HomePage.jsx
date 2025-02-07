@@ -8,6 +8,10 @@ const HomePage = () => {
     const [posts,setPosts]= useState([]);
     const [loading,setLoading]=useState(true);
     const showToast = useShowToast()
+    useEffect(() => {
+        console.log("Updated posts:", posts);
+    }, [posts]); // Runs every time `posts` changes
+    
     useEffect(()=>{
         const getFeedPosts = async ()=>{
             setLoading(true);
@@ -19,6 +23,7 @@ const HomePage = () => {
                 showToast("Error",data.error,"error");
                }
                setPosts(data);
+               
             }catch(err){
               showToast("Error",err.message,"error") 
             }finally{
