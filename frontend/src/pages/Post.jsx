@@ -1,16 +1,19 @@
 import { Avatar, Box, Flex, Text, Image } from "@chakra-ui/react";
-import { BsThreeDots } from "react-icons/bs";
+import {DeleteIcon} from '@chakra-ui/icons';
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Actions from '../components/Actions'
 import useShowToast from "../hooks/useShowToast";
 import {formatDistanceToNow} from 'date-fns';
-
+import userAtom from "../atoms/userAtom.js";
+import postsAtom  from "../atoms/postsAtom.js";
+import { useRecoilState, useRecoilValue } from "recoil";
 const Post = ({ post,postedBy}) =>{
-    
+
     const showToast = useShowToast();
     const [user,setUser]=useState(null)
-
+    const currentUser = useRecoilValue(userAtom);
+    const [posts,setPosts] = useRecoilState(postsAtom);
     const Navigate = useNavigate()
     useEffect(() => {
         const getUser = async () => {
@@ -32,6 +35,28 @@ const Post = ({ post,postedBy}) =>{
     
         getUser();
     }, [postedBy, showToast]);
+
+    const handleDeletePost = async (e) => {
+         
+        try {
+            e.preventDefault();
+            if(!window.confirm("Are you sure you want to delete this post?")) return;
+            const res = await fetch(`/api/post/${post._id}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (data.error) {
+                showToast("Error", data.error, "error");
+                return;
+            }
+            showToast("Success", "Post deleted successfully", "success");
+            setPosts(posts.filter((item) => item._id !== post._id));
+        } catch (error) {
+            showToast("Error", error.message, "error");
+        }
+
+
+    }
     
     if(!user) return null;
     return (
@@ -49,36 +74,36 @@ const Post = ({ post,postedBy}) =>{
                 {post.replies.length === 0 && <Text textAlign={'center'}>🥱</Text>}
                 {post.replies[0] &&(
                    <Avatar
-                   size="xs"
-                   name="mark zucker"
-                   src={post.replies[0].userProfilePic}
-                   position={"absolute"}
-                   top={"0px"}
-                   left="15px"
-                   padding={"2px"}
-                   /> 
+                   size='xs'
+                    name='John doe'
+                    src={post.replies[0].userProfilePic}
+                    position={"absolute"}
+                    top={"0px"}
+                    left='15px'
+                    padding={"2px"}
+            />      
                 )}
                 {post.replies[1] &&(
-                   <Avatar
-                   size="xs"
-                   name="mark zucker"
-                   src={post.replies[1].userProfilePic}
-                   position={"absolute"}
-                   top={"0px"}
-                   left="15px"
-                   padding={"2px"}
-                   /> 
+                <Avatar
+                    size='xs'
+                    name='John doe'
+                    src={post.replies[1].userProfilePic}
+                    position={"absolute"}
+                    bottom={"0px"}
+                    right='-5px'
+                    padding={"2px"}
+                /> 
                 )}
                 {post.replies[2] &&(
                    <Avatar
-                   size="xs"
-                   name="mark zucker"
+                   size='xs'
+                   name='John doe'
                    src={post.replies[2].userProfilePic}
                    position={"absolute"}
-                   top={"0px"}
-                   left="15px"
+                   bottom={"0px"}
+                   left='4px'
                    padding={"2px"}
-                   /> 
+               /> 
                 )}
                
                
@@ -101,7 +126,9 @@ const Post = ({ post,postedBy}) =>{
 							<Text fontSize={"xs"} w={36} textAlign={'right'}color={"gray.light"}>
                             {formatDistanceToNow(new Date(post.createdAt))}
 							</Text>
-							
+							{currentUser?._id === user?._id && (
+                                <DeleteIcon onClick={handleDeletePost} cursor={'pointer'}/>
+                            )}
 						</Flex>
 					</Flex>
 

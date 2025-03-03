@@ -22,13 +22,16 @@ import { useState } from "react";
 import usePreviewImg from "../hooks/usePreviewImg";
 import { useRef } from "react";
 import { BsFillImageFill } from "react-icons/bs";
-import {useRecoilValue} from 'recoil';
+import {useRecoilValue,useRecoilState} from 'recoil';
 import userAtom from "../atoms/userAtom.js";
 import useShowToast from "../hooks/useShowToast";
+import postsAtom from "../atoms/postsAtom.js";
+import { useParams } from "react-router-dom";
 
 const MAX_CHAR = 500;
 const CreatePost = ()=>{
-  
+    
+    const [posts,setPosts] = useRecoilState(postsAtom);
     const { handleImageChange, imgUrl ,setImgUrl} = usePreviewImg();
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [postText,setPostText] = useState('')
@@ -36,6 +39,7 @@ const CreatePost = ()=>{
     const [ remainingChar,setRemainingChar] = useState(MAX_CHAR)
     const user = useRecoilValue(userAtom);
     const showToast = useShowToast()
+    const {username} = useParams();
     const handleTextChange = (e)=>{ 
         const inputText = e.target.value;
         if(inputText.length > MAX_CHAR){
@@ -48,6 +52,8 @@ const CreatePost = ()=>{
         }
     };
     console.log(user._id);
+
+    
     const handleCreatePost = async (e) => {
       e.preventDefault(); // Prevent form submission refresh
       
@@ -75,6 +81,9 @@ const CreatePost = ()=>{
         setPostText(""); // Reset form
         setImgUrl("");
         showToast("Success", "Post created successfully", "success");
+        if(username === user.username){
+          setPosts([data, ...posts]);
+        }
         onClose();
     
       } catch (error) {
@@ -84,14 +93,16 @@ const CreatePost = ()=>{
      
     return(
         <>
-        <Button 
-        leftIcon={<AddIcon />}
-        position={'fixed'}
-        right={10}
-        bottom={10}
-        onClick={onOpen}>
-            Post
-        </Button>
+        <Button
+				position={"fixed"}
+				bottom={10}
+				right={5}
+				
+				onClick={onOpen}
+				size={{ base: "sm", sm: "md" }}
+			>
+				<AddIcon />
+			</Button>
 
         <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
